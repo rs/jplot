@@ -1,0 +1,10 @@
+language: go
+go:
+- 1.8
+- 1.9
+- master
+matrix:
+  allow_failures:
+      - go: master
+script:
+  go test -v -race -cpu=1,2,4 -bench . -benchmem ./...
