@@ -45,11 +45,13 @@ func (h HTTP) fetch(url string) {
 	resp, err := http.Get(url)
 	if err != nil {
 		h.c <- res{err: err}
+		return
 	}
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		h.c <- res{err: err}
+		return
 	}
 	jq, err := gojq.NewStringQuery(string(b))
 	h.c <- res{jq: jq, err: err}
