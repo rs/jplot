@@ -193,20 +193,12 @@ func graph(series []chart.Series, markers []chart.GridLine, width, height int) c
 				FontSize:    9,
 			}
 			series[i] = s
-			max := &chart.MaxSeries{
-				Style: chart.Style{
-					Show:            true,
-					StrokeColor:     c,
-					StrokeDashArray: []float64{5.0, 5.0},
-				},
-				InnerSeries: s,
-			}
 			last := chart.LastValueAnnotation(s, siValueFormater)
 			last.Style.FillColor = c
 			last.Style.FontColor = textColor(c)
 			last.Style.FontSize = 9
 			last.Style.Padding = chart.NewBox(2, 2, 2, 2)
-			series = append(series, max, last)
+			series = append(series, last)
 		}
 	}
 	graph := chart.Chart{
@@ -231,9 +223,9 @@ func graph(series []chart.Series, markers []chart.GridLine, width, height int) c
 			TickPosition: 10, // hide text with non-existing position
 			GridMajorStyle: chart.Style{
 				Show:            true,
-				StrokeColor:     chart.ColorAlternateGray,
-				StrokeWidth:     3.0,
-				StrokeDashArray: []float64{5.0, 5.0},
+				StrokeColor:     chart.ColorAlternateGray.WithAlpha(100),
+				StrokeWidth:     2.0,
+				StrokeDashArray: []float64{2.0, 2.0},
 			},
 			GridLines: markers,
 		}

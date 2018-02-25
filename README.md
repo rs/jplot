@@ -45,7 +45,7 @@ Given the following JSON output:
 You can graph the number of thread over time:
 
 ```
-jplot --url http://:8080/debug/vars Thread
+jplot --url http://:8080/debug/vars Threads
 ```
 
 ![all](doc/single.png)
