@@ -16,7 +16,7 @@ func add(i *int, d, min int) int {
 }
 
 func main() {
-	t := time.NewTicker(time.Second)
+	t := time.NewTicker(time.Millisecond)
 	var utime, stime, cpu int
 	for range t.C {
 		b, _ := json.Marshal(map[string]interface{}{

@@ -16,6 +16,7 @@ import (
 
 	"github.com/rs/jplot/data"
 	"github.com/rs/jplot/source"
+	"github.com/rs/jplot/window"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart"
@@ -24,9 +25,7 @@ import (
 )
 
 type graphSpec struct {
-	width, height int
-	dpi           float64
-	fields        []field
+	fields []field
 }
 
 type field struct {
@@ -39,12 +38,13 @@ type field struct {
 func main() {
 	url := flag.String("url", "", "URL to fetch every second. Read JSON objects from stdin if not specified.")
 	steps := flag.Int("steps", 100, "Number of values to plot.")
-	width := flag.Int("width", 2500, "Canvas width")
-	height := flag.Int("height", 1400, "Canvas height")
-	dpi := flag.Float64("dpi", 220, "Canvas definition")
 	flag.Parse()
 
-	specs := parseSpec(flag.Args(), *width, *height, *dpi)
+	if _, _, err := window.Size(); err != nil {
+		log.Fatal("Cannot get window size")
+	}
+
+	specs := parseSpec(flag.Args())
 
 	dp := &data.Points{Size: *steps}
 	wg := &sync.WaitGroup{}
@@ -58,11 +58,15 @@ func main() {
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
 		for {
+			width, height, err := window.Size()
+			if err != nil {
+				log.Fatal("Cannot get window size")
+			}
 			select {
 			case <-t.C:
-				render(specs, dp)
+				render(specs, dp, width, height-25)
 			case <-exit:
-				render(specs, dp)
+				render(specs, dp, width, height-25)
 				return
 			}
 		}
@@ -97,14 +101,10 @@ func main() {
 	}
 }
 
-func parseSpec(args []string, width, height int, dpi float64) []graphSpec {
+func parseSpec(args []string) []graphSpec {
 	specs := make([]graphSpec, 0, len(args))
 	for i, v := range flag.Args() {
-		gs := graphSpec{
-			width:  width,
-			height: height / len(args),
-			dpi:    dpi,
-		}
+		gs := graphSpec{}
 		for j, name := range strings.Split(v, "+") {
 			var isCounter bool
 			var isMarker bool
@@ -137,7 +137,7 @@ func parseSpec(args []string, width, height int, dpi float64) []graphSpec {
 	return specs
 }
 
-func render(specs []graphSpec, dp *data.Points) {
+func render(specs []graphSpec, dp *data.Points, width, height int) {
 	graphs := make([]chart.Chart, 0, len(specs))
 	for _, gs := range specs {
 		series := []chart.Series{}
@@ -157,7 +157,7 @@ func render(specs []graphSpec, dp *data.Points) {
 				YValues: vals,
 			})
 		}
-		graphs = append(graphs, graph(series, markers, gs.width, gs.height, gs.dpi))
+		graphs = append(graphs, graph(series, markers, width, height/len(specs)))
 	}
 	printGraphs(graphs)
 }
@@ -180,7 +180,7 @@ func reset() {
 }
 
 // graph generate a line graph with series.
-func graph(series []chart.Series, markers []chart.GridLine, width, height int, dpi float64) chart.Chart {
+func graph(series []chart.Series, markers []chart.GridLine, width, height int) chart.Chart {
 	for i, s := range series {
 		if s, ok := s.(chart.ContinuousSeries); ok {
 			s.XValues = seq.Range(0, float64(len(s.YValues)-1))
@@ -190,6 +190,7 @@ func graph(series []chart.Series, markers []chart.GridLine, width, height int, d
 				StrokeWidth: 2,
 				StrokeColor: c,
 				FillColor:   c.WithAlpha(20),
+				FontSize:    9,
 			}
 			series[i] = s
 			max := &chart.MaxSeries{
@@ -203,15 +204,16 @@ func graph(series []chart.Series, markers []chart.GridLine, width, height int, d
 			last := chart.LastValueAnnotation(s, siValueFormater)
 			last.Style.FillColor = c
 			last.Style.FontColor = textColor(c)
+			last.Style.FontSize = 9
+			last.Style.Padding = chart.NewBox(2, 2, 2, 2)
 			series = append(series, max, last)
 		}
 	}
 	graph := chart.Chart{
 		Width:  width,
 		Height: height,
-		DPI:    dpi,
 		Background: chart.Style{
-			Padding: chart.NewBox(20, 0, 0, 20),
+			Padding: chart.NewBox(5, 0, 0, 5),
 		},
 		YAxis: chart.YAxis{
 			Style:          chart.StyleShow(),
@@ -237,7 +239,7 @@ func graph(series []chart.Series, markers []chart.GridLine, width, height int, d
 		}
 	}
 	graph.Elements = []chart.Renderable{
-		chart.Legend(&graph, chart.Style{
+		legend(&graph, chart.Style{
 			FillColor:   drawing.Color{A: 100},
 			FontColor:   chart.ColorWhite,
 			StrokeColor: chart.ColorTransparent,
