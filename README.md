@@ -1,5 +1,5 @@
 # jplot
-[![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/rs/jplot) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/jplot/master/LICENSE) [![Build Status](https://travis-ci.org/rs/jplot.svg?branch=master)](https://travis-ci.org/rs/jplot)
+[![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/jplot/master/LICENSE) [![Build Status](https://travis-ci.org/rs/jplot.svg?branch=master)](https://travis-ci.org/rs/jplot)
 
 Jplot tracks expvar-like (JSON) metrics and plot their evolution over time right into your iTerm2 terminal.
 
@@ -48,7 +48,7 @@ You can graph the number of thread over time:
 jplot --url http://:8080/debug/vars Threads
 ```
 
-![all](doc/single.png)
+![](doc/single.png)
 
 Or create a graph with both Utime and Stime growth rate on the same axis by using `+` between two field paths:
 
@@ -58,7 +58,7 @@ jplot --url http://:8080/debug/vars counter:cpu.STime+counter:cpu.UTime
 
 Note: the `counter:` prefix instructs jplot to compute the difference between the values instead of showing their absolute value.
 
-![all](doc/dual.png)
+![](doc/dual.png)
 
 
 Or create several graphs by providing groups of fields as separate arguments; each argument creates a new graph:
@@ -67,7 +67,7 @@ Or create several graphs by providing groups of fields as separate arguments; ea
 jplot --url http://:8080/debug/vars mem.Heap+mem.Sys+mem.Stack counter:cpu.STime+cpu.UTime Threads
 ```
 
-![all](doc/all.png)
+![](doc/all.png)
 
 ### Spec Syntax
 
@@ -91,6 +91,6 @@ jplot --url http://:8080/debug/vars \
     memstats.StackSys+memstats.StackInuse
 ```
 
-![all](doc/memstats.png)
+![](doc/memstats.png)
 
 
