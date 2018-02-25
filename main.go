@@ -172,6 +172,9 @@ func graph(series []chart.Series, width, height int, dpi float64) chart.Chart {
 		Width:  width,
 		Height: height,
 		DPI:    dpi,
+		Background: chart.Style{
+			Padding: chart.NewBox(20, 0, 0, 20),
+		},
 		YAxis: chart.YAxis{
 			Style: chart.StyleShow(),
 			ValueFormatter: func(v interface{}) string {
