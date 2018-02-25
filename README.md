@@ -5,6 +5,17 @@ Jplot tracks expvar-like (JSON) metrics and plot their evolution over time right
 
 ![all](doc/demo.gif)
 
+Above capture is jplot monitoring a Go service's [expvar](https://golang.org/pkg/expvar/):
+
+```
+jplot --url http://:8080/debug/vars \
+    memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle \
+    counter:memstats.TotalAlloc \
+    memstats.HeapObjects \
+    memstats.StackSys+memstats.StackInuse \
+    counter:memstats.NumGC
+```
+
 ## Install
 
 ```
@@ -69,7 +80,9 @@ Here is an example command to graph a Go program memstats:
 jplot --url http://:8080/debug/vars \
     memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle \
     counter:memstats.TotalAlloc \
-    memstats.HeapObjects
+    memstats.HeapObjects \
+    memstats.StackSys+memstats.StackInuse \
+    counter:memstats.NumGC
 ```
 ![all](doc/memstats.png)
 
