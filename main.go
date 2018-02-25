@@ -1,7 +1,6 @@
 package main // import "github.com/rs/jplot"
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/base64"
 	"flag"
@@ -10,89 +9,131 @@ import (
 	"image/draw"
 	"image/png"
 	"log"
-	"os"
 	"strings"
+	"sync"
+	"time"
+
+	"github.com/rs/jplot/data"
+	"github.com/rs/jplot/source"
 
 	humanize "github.com/dustin/go-humanize"
-	"github.com/elgs/gojq"
 	"github.com/wcharczuk/go-chart"
 	"github.com/wcharczuk/go-chart/drawing"
 	"github.com/wcharczuk/go-chart/seq"
 )
 
+type graphSpec struct {
+	width, height int
+	dpi           float64
+	fields        []field
+}
+
+type field struct {
+	id      string
+	name    string
+	counter bool
+}
+
 func main() {
+	url := flag.String("url", "", "URL to fetch every second. Read JSON objects from stdin if not specified.")
 	steps := flag.Int("steps", 100, "Number of values to plot.")
 	width := flag.Int("width", 2500, "Canvas width")
 	height := flag.Int("height", 1300, "Canvas height")
 	dpi := flag.Float64("dpi", 220, "Canvas definition")
 	flag.Parse()
-	fields := flag.Args()
 
-	dp := &dataPoints{Steps: *steps}
+	specs := parseSpec(flag.Args(), *width, *height, *dpi)
 
-	clear()
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		jq, err := gojq.NewStringQuery(scanner.Text())
+	dp := &data.Points{Size: *steps}
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	defer wg.Wait()
+	exit := make(chan struct{})
+	defer close(exit)
+	go func() {
+		defer wg.Done()
+		clear()
+		t := time.NewTicker(time.Second)
+		defer t.Stop()
+		for {
+			select {
+			case <-t.C:
+				render(specs, dp)
+			case <-exit:
+				render(specs, dp)
+				return
+			}
+		}
+	}()
+
+	var s source.Getter = source.NewStdin()
+	if *url != "" {
+		s = source.NewHTTP(*url, time.Second)
+	}
+	defer s.Close()
+	for {
+		jq, err := s.Get()
 		if err != nil {
 			log.Fatalf("Input error: %v", err)
 		}
-		graphs := make([]chart.Chart, 0, len(fields))
-		for i, field := range fields {
-			series := []chart.Series{}
-			for j, f := range strings.Split(field, "+") {
-				var isCounter bool
-				name := f
-				if strings.HasPrefix(name, "counter:") {
-					isCounter = true
-					name = name[8:]
-				}
-				v, err := jq.Query(name)
+		if jq == nil {
+			break
+		}
+		for _, gs := range specs {
+			for _, f := range gs.fields {
+				v, err := jq.Query(f.name)
 				if err != nil {
-					log.Fatalf("Cannot get %s: %v", name, err)
+					log.Fatalf("Cannot get %s: %v", f.name, err)
 				}
 				n, ok := v.(float64)
 				if !ok {
-					log.Fatalf("Invalid type %s: %T", name, v)
+					log.Fatalf("Invalid type %s: %T", f.name, v)
 				}
-				vals := dp.push(fmt.Sprintf("%d.%d.%s", i, j, name), n, isCounter)
-				series = append(series, chart.ContinuousSeries{
-					Name:    fmt.Sprintf("%s: %s", name, humanize.SI(vals[len(vals)-1], "")),
-					YValues: vals,
-				})
+				dp.Push(f.id, n, f.counter)
 			}
-			graphs = append(graphs, graph(series, *width, *height/len(fields), *dpi))
 		}
-		printGraphs(graphs, *width, *height)
 	}
 }
 
-type dataPoints struct {
-	Steps  int
-	points map[string][]float64
-	last   map[string]float64
+func parseSpec(args []string, width, height int, dpi float64) []graphSpec {
+	specs := make([]graphSpec, 0, len(args))
+	for i, v := range flag.Args() {
+		gs := graphSpec{
+			width:  width,
+			height: height / len(args),
+			dpi:    dpi,
+		}
+		for j, name := range strings.Split(v, "+") {
+			var isCounter bool
+			if strings.HasPrefix(name, "counter:") {
+				isCounter = true
+				name = name[8:]
+			}
+			gs.fields = append(gs.fields, field{
+				id:      fmt.Sprintf("%d.%d.%s", i, j, name),
+				name:    name,
+				counter: isCounter,
+			})
+		}
+		specs = append(specs, gs)
+	}
+	return specs
 }
 
-func (dp *dataPoints) push(name string, value float64, counter bool) []float64 {
-	if dp.points == nil {
-		dp.points = make(map[string][]float64, 1)
-		dp.last = make(map[string]float64)
-	}
-	d, found := dp.points[name]
-	if !found {
-		d = make([]float64, dp.Steps)
-	}
-	if counter {
-		var diff float64
-		if last := dp.last[name]; last > 0 {
-			diff = value - last
+func render(specs []graphSpec, dp *data.Points) {
+	graphs := make([]chart.Chart, 0, len(specs))
+	for _, gs := range specs {
+		series := []chart.Series{}
+		for _, f := range gs.fields {
+			vals := dp.Get(f.id)
+			series = append(series, chart.ContinuousSeries{
+				Name:    fmt.Sprintf("%s: %s", f.name, humanize.SI(vals[len(vals)-1], "")),
+				YValues: vals,
+			})
 		}
-		dp.last[name] = value
-		value = diff
+		graphs = append(graphs, graph(series, gs.width, gs.height, gs.dpi))
 	}
-	d = append(append(make([]float64, 0, dp.Steps), d[1:]...), value)
-	dp.points[name] = d
-	return d
+	printGraphs(graphs)
 }
 
 func init() {
@@ -150,15 +191,23 @@ func graph(series []chart.Series, width, height int, dpi float64) chart.Chart {
 }
 
 // printGraphs generates a single PNG with graphs stacked and print it to iTerm2.
-func printGraphs(graphs []chart.Chart, width, height int) {
+func printGraphs(graphs []chart.Chart) {
+	var width, height int
+	for _, graph := range graphs {
+		if graph.Width > width {
+			width = graph.Width
+		}
+		height += graph.Height
+	}
 	reset()
 	canvas := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{width, height}})
-	graphHeight := height / len(graphs)
-	for i, graph := range graphs {
+	var top int
+	for _, graph := range graphs {
 		iw := &chart.ImageWriter{}
 		graph.Render(chart.PNG, iw)
 		img, _ := iw.Image()
-		r := image.Rectangle{image.Point{0, graphHeight * i}, image.Point{width, graphHeight * (i + 1)}}
+		r := image.Rectangle{image.Point{0, top}, image.Point{width, top + graph.Height}}
+		top += graph.Height
 		draw.Draw(canvas, r, img, image.Point{0, 0}, draw.Src)
 	}
 	var b bytes.Buffer
