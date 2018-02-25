@@ -9,11 +9,10 @@ Above capture is jplot monitoring a Go service's [expvar](https://golang.org/pkg
 
 ```
 jplot --url http://:8080/debug/vars \
-    memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle \
+    memstats.HeapAlloc+memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle+marker:counter:memstats.NumGC \
     counter:memstats.TotalAlloc \
     memstats.HeapObjects \
-    memstats.StackSys+memstats.StackInuse \
-    counter:memstats.NumGC
+    memstats.StackSys+memstats.StackInuse
 ```
 
 ## Install
@@ -70,7 +69,15 @@ jplot --url http://:8080/debug/vars mem.Heap+mem.Sys+mem.Stack counter:cpu.STime
 
 ![all](doc/all.png)
 
-See [gojq](github.com/elgs/gojq) for more details on the JSON query syntax.
+### Spec Syntax
+
+Each positional arguments given to jplot create a stacked graph with the specified values. To reference the values, use [gojq](github.com/elgs/gojq) JSON query syntax. Several value paths can be referenced for the same graph by using the `+` character to separate them.
+
+In addition, each value path can be prefixed with options separated from the path by a column. Several options can be used for the same command by separating them with a comma like so: `option1,option2:value.path`.
+
+Supported options are:
+* `counter`: Computes the difference with the last value. The value must increase monotonically.
+* `marker`: When the value is none-zero, a vertical line is drawn.
 
 ### Memstats
 
@@ -78,12 +85,12 @@ Here is an example command to graph a Go program memstats:
 
 ```
 jplot --url http://:8080/debug/vars \
-    memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle \
+    memstats.HeapAlloc+memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle+marker:counter:memstats.NumGC \
     counter:memstats.TotalAlloc \
     memstats.HeapObjects \
-    memstats.StackSys+memstats.StackInuse \
-    counter:memstats.NumGC
+    memstats.StackSys+memstats.StackInuse
 ```
+
 ![all](doc/memstats.png)
 
 

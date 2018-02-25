@@ -33,13 +33,14 @@ type field struct {
 	id      string
 	name    string
 	counter bool
+	marker  bool
 }
 
 func main() {
 	url := flag.String("url", "", "URL to fetch every second. Read JSON objects from stdin if not specified.")
 	steps := flag.Int("steps", 100, "Number of values to plot.")
 	width := flag.Int("width", 2500, "Canvas width")
-	height := flag.Int("height", 1300, "Canvas height")
+	height := flag.Int("height", 1400, "Canvas height")
 	dpi := flag.Float64("dpi", 220, "Canvas definition")
 	flag.Parse()
 
@@ -106,6 +107,20 @@ func parseSpec(args []string, width, height int, dpi float64) []graphSpec {
 		}
 		for j, name := range strings.Split(v, "+") {
 			var isCounter bool
+			var isMarker bool
+			n := strings.Split(name, ":")
+			for len(n) > 1 {
+				switch n[0] {
+				case "counter":
+					isCounter = true
+				case "marker":
+					isMarker = true
+				default:
+					log.Fatalf("Invalid field option: %s", n[0])
+				}
+				n = n[1:]
+			}
+			name = n[0]
 			if strings.HasPrefix(name, "counter:") {
 				isCounter = true
 				name = name[8:]
@@ -114,6 +129,7 @@ func parseSpec(args []string, width, height int, dpi float64) []graphSpec {
 				id:      fmt.Sprintf("%d.%d.%s", i, j, name),
 				name:    name,
 				counter: isCounter,
+				marker:  isMarker,
 			})
 		}
 		specs = append(specs, gs)
@@ -125,14 +141,23 @@ func render(specs []graphSpec, dp *data.Points) {
 	graphs := make([]chart.Chart, 0, len(specs))
 	for _, gs := range specs {
 		series := []chart.Series{}
+		markers := []chart.GridLine{}
 		for _, f := range gs.fields {
 			vals := dp.Get(f.id)
+			if f.marker {
+				for i, v := range vals {
+					if v > 0 {
+						markers = append(markers, chart.GridLine{Value: float64(i)})
+					}
+				}
+				continue
+			}
 			series = append(series, chart.ContinuousSeries{
 				Name:    fmt.Sprintf("%s: %s", f.name, siValueFormater(vals[len(vals)-1])),
 				YValues: vals,
 			})
 		}
-		graphs = append(graphs, graph(series, gs.width, gs.height, gs.dpi))
+		graphs = append(graphs, graph(series, markers, gs.width, gs.height, gs.dpi))
 	}
 	printGraphs(graphs)
 }
@@ -155,7 +180,7 @@ func reset() {
 }
 
 // graph generate a line graph with series.
-func graph(series []chart.Series, width, height int, dpi float64) chart.Chart {
+func graph(series []chart.Series, markers []chart.GridLine, width, height int, dpi float64) chart.Chart {
 	for i, s := range series {
 		if s, ok := s.(chart.ContinuousSeries); ok {
 			s.XValues = seq.Range(0, float64(len(s.YValues)-1))
@@ -193,6 +218,23 @@ func graph(series []chart.Series, width, height int, dpi float64) chart.Chart {
 			ValueFormatter: siValueFormater,
 		},
 		Series: series,
+	}
+	if len(markers) > 0 {
+		graph.Background.Padding.Bottom = 0 // compensate transparent tick space
+		graph.XAxis = chart.XAxis{
+			Style: chart.StyleShow(),
+			TickStyle: chart.Style{
+				StrokeColor: chart.ColorTransparent,
+			},
+			TickPosition: 10, // hide text with non-existing position
+			GridMajorStyle: chart.Style{
+				Show:            true,
+				StrokeColor:     chart.ColorAlternateGray,
+				StrokeWidth:     3.0,
+				StrokeDashArray: []float64{5.0, 5.0},
+			},
+			GridLines: markers,
+		}
 	}
 	graph.Elements = []chart.Renderable{
 		chart.Legend(&graph, chart.Style{
