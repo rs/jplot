@@ -9,6 +9,7 @@ import (
 	"image/draw"
 	"image/png"
 	"log"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -127,7 +128,7 @@ func render(specs []graphSpec, dp *data.Points) {
 		for _, f := range gs.fields {
 			vals := dp.Get(f.id)
 			series = append(series, chart.ContinuousSeries{
-				Name:    fmt.Sprintf("%s: %s", f.name, humanize.SI(vals[len(vals)-1], "")),
+				Name:    fmt.Sprintf("%s: %s", f.name, siValueFormater(vals[len(vals)-1])),
 				YValues: vals,
 			})
 		}
@@ -166,6 +167,18 @@ func graph(series []chart.Series, width, height int, dpi float64) chart.Chart {
 				FillColor:   c.WithAlpha(20),
 			}
 			series[i] = s
+			max := &chart.MaxSeries{
+				Style: chart.Style{
+					Show:            true,
+					StrokeColor:     c,
+					StrokeDashArray: []float64{5.0, 5.0},
+				},
+				InnerSeries: s,
+			}
+			last := chart.LastValueAnnotation(s, siValueFormater)
+			last.Style.FillColor = c
+			last.Style.FontColor = textColor(c)
+			series = append(series, max, last)
 		}
 	}
 	graph := chart.Chart{
@@ -176,10 +189,8 @@ func graph(series []chart.Series, width, height int, dpi float64) chart.Chart {
 			Padding: chart.NewBox(20, 0, 0, 20),
 		},
 		YAxis: chart.YAxis{
-			Style: chart.StyleShow(),
-			ValueFormatter: func(v interface{}) string {
-				return humanize.SI(v.(float64), "")
-			},
+			Style:          chart.StyleShow(),
+			ValueFormatter: siValueFormater,
 		},
 		Series: series,
 	}
@@ -191,6 +202,29 @@ func graph(series []chart.Series, width, height int, dpi float64) chart.Chart {
 		}),
 	}
 	return graph
+}
+
+func textColor(bg drawing.Color) drawing.Color {
+	var L float64
+	for c, f := range map[uint8]float64{bg.R: 0.2126, bg.G: 0.7152, bg.B: 0.0722} {
+		c := float64(c) / 255.0
+		if c <= 0.03928 {
+			c = c / 12.92
+		} else {
+			c = math.Pow(((c + 0.055) / 1.055), 2.4)
+		}
+		L += c * f
+	}
+	if L > 0.179 {
+		return chart.ColorBlack
+	}
+	return chart.ColorWhite
+}
+
+func siValueFormater(v interface{}) string {
+	value, prefix := humanize.ComputeSI(v.(float64))
+	value = float64(int(value*100)) / 100
+	return humanize.Ftoa(value) + " " + prefix
 }
 
 // printGraphs generates a single PNG with graphs stacked and print it to iTerm2.
