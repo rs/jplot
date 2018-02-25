@@ -59,4 +59,18 @@ jplot --url http://:8080/debug/vars mem.Heap+mem.Sys+mem.Stack counter:cpu.STime
 
 ![all](doc/all.png)
 
-See [gojq|github.com/elgs/gojq] for more details on the JSON query syntax.
+See [gojq](github.com/elgs/gojq) for more details on the JSON query syntax.
+
+### Memstats
+
+Here is an example command to graph a Go program memstats:
+
+```
+jplot --url http://:8080/debug/vars \
+    memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle \
+    counter:memstats.TotalAlloc \
+    memstats.HeapObjects
+```
+![all](doc/memstats.png)
+
+
