@@ -71,7 +71,7 @@ jplot --url http://:8080/debug/vars mem.Heap+mem.Sys+mem.Stack counter:cpu.STime
 
 ### Spec Syntax
 
-Each positional arguments given to jplot create a stacked graph with the specified values. To reference the values, use [gojq](github.com/elgs/gojq) JSON query syntax. Several value paths can be referenced for the same graph by using the `+` character to separate them.
+Each positional arguments given to jplot create a stacked graph with the specified values. To reference the values, use [gojq](https://github.com/elgs/gojq) JSON query syntax. Several value paths can be referenced for the same graph by using the `+` character to separate them.
 
 In addition, each value path can be prefixed with options separated from the path by a column. Several options can be used for the same command by separating them with a comma like so: `option1,option2:value.path`.
 
