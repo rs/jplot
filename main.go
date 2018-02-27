@@ -24,6 +24,8 @@ import (
 	"github.com/wcharczuk/go-chart/seq"
 )
 
+const titleBarSize = 25
+
 type graphSpec struct {
 	fields []field
 }
@@ -37,6 +39,8 @@ type field struct {
 
 func main() {
 	url := flag.String("url", "", "URL to fetch every second. Read JSON objects from stdin if not specified.")
+	interval := flag.Duration("interval", time.Second, "When url is provided, defines the interval between fetches."+
+		" Note that counter fields are computed based on this interval.")
 	steps := flag.Int("steps", 100, "Number of values to plot.")
 	flag.Parse()
 
@@ -64,9 +68,9 @@ func main() {
 			}
 			select {
 			case <-t.C:
-				render(specs, dp, width, height-25)
+				render(specs, dp, width, height-titleBarSize)
 			case <-exit:
-				render(specs, dp, width, height-25)
+				render(specs, dp, width, height-titleBarSize)
 				return
 			}
 		}
@@ -74,7 +78,7 @@ func main() {
 
 	var s source.Getter = source.NewStdin()
 	if *url != "" {
-		s = source.NewHTTP(*url, time.Second)
+		s = source.NewHTTP(*url, *interval)
 	}
 	defer s.Close()
 	for {
