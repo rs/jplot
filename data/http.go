@@ -1,4 +1,4 @@
-package source
+package data
 
 import (
 	"io/ioutil"
@@ -8,7 +8,7 @@ import (
 	"github.com/elgs/gojq"
 )
 
-type HTTP struct {
+type httpSource struct {
 	c    chan res
 	done chan struct{}
 }
@@ -18,16 +18,20 @@ type res struct {
 	err error
 }
 
-func NewHTTP(url string, interval time.Duration) HTTP {
-	h := HTTP{
+// FromHTTP fetch data points from url every interval and keep size points.
+func FromHTTP(url string, interval time.Duration, size int) *Points {
+	h := httpSource{
 		c:    make(chan res),
 		done: make(chan struct{}),
 	}
 	go h.run(url, interval)
-	return h
+	return &Points{
+		Size:   size,
+		Source: h,
+	}
 }
 
-func (h HTTP) run(url string, interval time.Duration) {
+func (h httpSource) run(url string, interval time.Duration) {
 	t := time.NewTicker(interval)
 	defer t.Stop()
 	h.fetch(url)
@@ -41,7 +45,7 @@ func (h HTTP) run(url string, interval time.Duration) {
 	}
 }
 
-func (h HTTP) fetch(url string) {
+func (h httpSource) fetch(url string) {
 	resp, err := http.Get(url)
 	if err != nil {
 		h.c <- res{err: err}
@@ -57,12 +61,12 @@ func (h HTTP) fetch(url string) {
 	h.c <- res{jq: jq, err: err}
 }
 
-func (h HTTP) Get() (*gojq.JQ, error) {
+func (h httpSource) Get() (*gojq.JQ, error) {
 	res := <-h.c
 	return res.jq, res.err
 }
 
-func (h HTTP) Close() error {
+func (h httpSource) Close() error {
 	close(h.done)
 	return nil
 }
