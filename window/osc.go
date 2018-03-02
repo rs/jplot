@@ -21,8 +21,8 @@ func oscSize() (width, height int, err error) {
 	}
 	defer terminal.Restore(0, s)
 	fmt.Print("\033]1337;ReportCellSize\033\\")
-	os.Stdin.SetReadDeadline(time.Now().Add(time.Second))
-	defer os.Stdin.SetReadDeadline(time.Time{})
+	fileSetReadDeadline(os.Stdin, time.Now().Add(time.Second))
+	defer fileSetReadDeadline(os.Stdin, time.Time{})
 	var cellWidth, cellHeight float64
 	_, err = fmt.Fscanf(os.Stdin, "\033]1337;ReportCellSize=%f;%f\033\\", &cellHeight, &cellWidth)
 	return cols * int(cellWidth), lines * int(cellHeight), err
