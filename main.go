@@ -14,8 +14,6 @@ import (
 	"github.com/rs/jplot/window"
 )
 
-const titleBarSize = 25
-
 func main() {
 	url := flag.String("url", "", "URL to fetch every second. Read JSON objects from stdin if not specified.")
 	interval := flag.Duration("interval", time.Second, "When url is provided, defines the interval between fetches."+
@@ -62,9 +60,9 @@ func main() {
 					// Clear scrollback to avoid iTerm from eating all the memory.
 					cleanup()
 				}
-				render(dash, width, height-titleBarSize)
+				render(dash, width, height)
 			case <-exit:
-				render(dash, width, height-titleBarSize)
+				render(dash, width, height)
 				return
 			}
 		}
