@@ -7,4 +7,6 @@ import (
 	"time"
 )
 
-func fileSetReadDeadline(f *os.File, t time.Time) error {}
+func fileSetReadDeadline(f *os.File, t time.Time) error {
+	return nil
+}
