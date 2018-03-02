@@ -49,6 +49,7 @@ func main() {
 		clear()
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
+		i := 0
 		for {
 			width, height, err := window.Size()
 			if err != nil {
@@ -56,6 +57,11 @@ func main() {
 			}
 			select {
 			case <-t.C:
+				i++
+				if i%120 == 0 {
+					// Clear scrollback to avoid iTerm from eating all the memory.
+					cleanup()
+				}
 				render(dash, width, height-titleBarSize)
 			case <-exit:
 				render(dash, width, height-titleBarSize)
@@ -86,4 +92,8 @@ func clear() {
 
 func reset() {
 	print("\033\133\061\073\061\110") // move cursor to 0x0
+}
+
+func cleanup() {
+	print("\033]1337;ClearScrollback\007")
 }
