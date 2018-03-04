@@ -97,4 +97,11 @@ jplot --url http://:8080/debug/vars \
 
 ![](doc/memstats.png)
 
+### Datadog
+
+To graph metrics from Datadob, you have to pass a Datadog API and Application key to jplot as follow:
+
+```
+jplot --url datadog://<api_key>/<app_key> metrics…
+```
 
