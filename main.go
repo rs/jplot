@@ -1,16 +1,17 @@
 package main // import "github.com/rs/jplot"
 
 import (
-	"bytes"
-	"encoding/base64"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/rs/jplot/data"
 	"github.com/rs/jplot/graph"
+	"github.com/rs/jplot/osc"
 	"github.com/rs/jplot/window"
 )
 
@@ -51,9 +52,13 @@ func main() {
 	defer close(exit)
 	go func() {
 		defer wg.Done()
-		clear()
+		osc.Clear()
+		osc.HideCursor()
+		defer osc.ShowCursor()
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
+		c := make(chan os.Signal, 2)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		i := 0
 		for {
 			width, height, err := window.Size()
@@ -65,12 +70,15 @@ func main() {
 				i++
 				if i%120 == 0 {
 					// Clear scrollback to avoid iTerm from eating all the memory.
-					cleanup()
+					osc.ClearScrollback()
 				}
 				render(dash, width, height)
 			case <-exit:
 				render(dash, width, height)
 				return
+			case <-c:
+				osc.ShowCursor()
+				os.Exit(0)
 			}
 		}
 	}()
@@ -86,24 +94,9 @@ func fatal(a ...interface{}) {
 }
 
 func render(dash graph.Dash, width, height int) {
-	var b bytes.Buffer
-	enc := base64.NewEncoder(base64.StdEncoding, &b)
-	defer enc.Close()
-	dash.Render(enc, width, height)
-	reset()
+	osc.CursorPosition(0, 0)
 	// Use iTerm2 image display feature.
-	fmt.Printf("\033]1337;File=preserveAspectRatio=1;inline=1:%s\007", b.Bytes())
-}
-
-func clear() {
-	print("\033\133\110\033\133\062\112") // clear screen
-	print("\033]1337;CursorShape=1\007")  // set cursor to vertical bar
-}
-
-func reset() {
-	print("\033\133\061\073\061\110") // move cursor to 0x0
-}
-
-func cleanup() {
-	print("\033]1337;ClearScrollback\007")
+	term := &osc.ImageWriter{}
+	defer term.Close()
+	dash.Render(term, width, height)
 }
