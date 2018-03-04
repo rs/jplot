@@ -9,7 +9,7 @@ Above capture is jplot monitoring a Go service's [expvar](https://golang.org/pkg
 
 ```
 jplot --url http://:8080/debug/vars \
-    memstats.HeapAlloc+memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle+marker,counter:memstats.NumGC \
+    memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle+marker,counter:memstats.NumGC \
     counter:memstats.TotalAlloc \
     memstats.HeapObjects \
     memstats.StackSys+memstats.StackInuse
@@ -85,7 +85,7 @@ Here is an example command to graph a Go program memstats:
 
 ```
 jplot --url http://:8080/debug/vars \
-    memstats.HeapAlloc+memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle+marker,counter:memstats.NumGC \
+    memstats.HeapSys+memstats.HeapAlloc+memstats.HeapIdle+marker,counter:memstats.NumGC \
     counter:memstats.TotalAlloc \
     memstats.HeapObjects \
     memstats.StackSys+memstats.StackInuse
