@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -19,6 +20,7 @@ func main() {
 	interval := flag.Duration("interval", time.Second, "When url is provided, defines the interval between fetches."+
 		" Note that counter fields are computed based on this interval.")
 	steps := flag.Int("steps", 100, "Number of values to plot.")
+	rows := flag.Int("rows", 0, "Limits the height of the graph output.")
 	flag.Parse()
 
 	if os.Getenv("TERM_PROGRAM") != "iTerm.app" {
@@ -51,19 +53,14 @@ func main() {
 	defer close(exit)
 	go func() {
 		defer wg.Done()
-		osc.Clear()
-		osc.HideCursor()
-		defer osc.ShowCursor()
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
 		c := make(chan os.Signal, 2)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		i := 0
+		prepare(*rows)
+		defer cleanup(*rows)
 		for {
-			size, err := osc.Size()
-			if err != nil {
-				fatal("Cannot get window size: ", err)
-			}
 			select {
 			case <-t.C:
 				i++
@@ -71,12 +68,14 @@ func main() {
 					// Clear scrollback to avoid iTerm from eating all the memory.
 					osc.ClearScrollback()
 				}
-				render(dash, size.Width, size.Height)
+				osc.CursorSavePosition()
+				render(dash, *rows)
+				osc.CursorRestorePosition()
 			case <-exit:
-				render(dash, size.Width, size.Height)
+				render(dash, *rows)
 				return
 			case <-c:
-				osc.ShowCursor()
+				cleanup(*rows)
 				os.Exit(0)
 			}
 		}
@@ -92,8 +91,40 @@ func fatal(a ...interface{}) {
 	os.Exit(1)
 }
 
-func render(dash graph.Dash, width, height int) {
-	osc.CursorPosition(0, 0)
+func prepare(rows int) {
+	osc.HideCursor()
+	if rows == 0 {
+		size, err := osc.Size()
+		if err != nil {
+			fatal("Cannot get window size: ", err)
+		}
+		rows = size.Row
+	}
+	print(strings.Repeat("\n", rows))
+	osc.CursorMove(osc.Up, rows)
+}
+
+func cleanup(rows int) {
+	osc.ShowCursor()
+	if rows == 0 {
+		size, _ := osc.Size()
+		rows = size.Row
+	}
+	osc.CursorMove(osc.Down, rows)
+	print("\n")
+}
+
+func render(dash graph.Dash, rows int) {
+	size, err := osc.Size()
+	if err != nil {
+		fatal("Cannot get window size: ", err)
+	}
+	width, height := size.Width, size.Height
+	if rows > 0 {
+		height = size.Height / size.Row * rows
+	} else {
+		rows = size.Row
+	}
 	// Use iTerm2 image display feature.
 	term := &osc.ImageWriter{}
 	defer term.Close()

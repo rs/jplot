@@ -44,6 +44,14 @@ func CursorPosition(row, col int) {
 }
 
 // CursorMove moves the cursor n times in the direction d.
-func CursorMove(d Direction, n uint) {
+func CursorMove(d Direction, n int) {
 	fmt.Printf("%s%d%s", csi, n, d)
+}
+
+func CursorSavePosition() {
+	print(csi + "s")
+}
+
+func CursorRestorePosition() {
+	print(csi + "u")
 }

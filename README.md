@@ -3,7 +3,7 @@
 
 Jplot tracks expvar-like (JSON) metrics and plot their evolution over time right into your iTerm2 terminal.
 
-![all](doc/demo.gif)
+![](doc/demo.gif)
 
 Above capture is jplot monitoring a Go service's [expvar](https://golang.org/pkg/expvar/):
 
@@ -14,6 +14,10 @@ jplot --url http://:8080/debug/vars \
     memstats.HeapObjects \
     memstats.StackSys+memstats.StackInuse
 ```
+
+By default, jplot uses the full size of the terminal, but it is possible to limit the render to a few rows:
+
+![](doc/rows.gif)
 
 ## Install
 
