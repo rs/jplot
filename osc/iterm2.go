@@ -3,6 +3,7 @@ package osc
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -14,6 +15,9 @@ import (
 
 var ecsi = "\033]"
 var st = "\007"
+
+var cellSizeOnce sync.Once
+var cellWidth, cellHeight float64
 
 func init() {
 	if os.Getenv("TERM") == "screen" {
@@ -35,23 +39,35 @@ type TermSize struct {
 	Height int
 }
 
+func initCellSize() {
+	s, err := terminal.MakeRaw(1)
+	if err != nil {
+		return
+	}
+	defer terminal.Restore(1, s)
+	fmt.Fprint(os.Stdout, ecsi+"1337;ReportCellSize"+st)
+	fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
+	defer fileSetReadDeadline(os.Stdout, time.Time{})
+	fmt.Fscanf(os.Stdout, "\033]1337;ReportCellSize=%f;%f\033\\", &cellHeight, &cellWidth)
+}
+
 // Size gathers sizing information of the current session's controling terminal.
 func Size() (size TermSize, err error) {
 	size.Col, size.Row, err = terminal.GetSize(1)
 	if err != nil {
 		return
 	}
-	s, err := terminal.MakeRaw(1)
-	if err != nil {
-		return
+	cellSizeOnce.Do(initCellSize)
+	if cellWidth+cellHeight == 0 {
+		err = errors.New("cannot get iTerm2 cell size")
 	}
-	defer terminal.Restore(1, s)
-	var cellWidth, cellHeight float64
-	fmt.Fprint(os.Stdout, ecsi+"1337;ReportCellSize"+st)
-	fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
-	defer fileSetReadDeadline(os.Stdout, time.Time{})
-	_, err = fmt.Fscanf(os.Stdout, "\033]1337;ReportCellSize=%f;%f\033\\", &cellHeight, &cellWidth)
 	size.Width, size.Height = size.Col*int(cellWidth), size.Row*int(cellHeight)
+	return
+}
+
+// Rows returns the number of rows for the controling terminal.
+func Rows() (rows int, err error) {
+	_, rows, err = terminal.GetSize(1)
 	return
 }
 

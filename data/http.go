@@ -40,6 +40,7 @@ func (h httpSource) run(url string, interval time.Duration) {
 		case <-t.C:
 			h.fetch(url)
 		case <-h.done:
+			close(h.c)
 			return
 		}
 	}

@@ -40,7 +40,6 @@ func main() {
 	} else {
 		dp = data.FromStdin(*steps)
 	}
-	defer dp.Close()
 	dash := graph.Dash{
 		Specs: specs,
 		Data:  dp,
@@ -58,11 +57,13 @@ func main() {
 		c := make(chan os.Signal, 2)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		i := 0
-		prepare(*rows)
-		defer cleanup(*rows)
 		for {
 			select {
 			case <-t.C:
+				if i == 0 {
+					prepare(*rows)
+					defer cleanup(*rows)
+				}
 				i++
 				if i%120 == 0 {
 					// Clear scrollback to avoid iTerm from eating all the memory.
@@ -72,11 +73,13 @@ func main() {
 				render(dash, *rows)
 				osc.CursorRestorePosition()
 			case <-exit:
-				render(dash, *rows)
+				if i == 0 {
+					render(dash, *rows)
+				}
 				return
 			case <-c:
-				cleanup(*rows)
-				os.Exit(0)
+				dp.Close()
+				signal.Stop(c)
 			}
 		}
 	}()
@@ -94,11 +97,10 @@ func fatal(a ...interface{}) {
 func prepare(rows int) {
 	osc.HideCursor()
 	if rows == 0 {
-		size, err := osc.Size()
-		if err != nil {
+		var err error
+		if rows, err = osc.Rows(); err != nil {
 			fatal("Cannot get window size: ", err)
 		}
-		rows = size.Row
 	}
 	print(strings.Repeat("\n", rows))
 	osc.CursorMove(osc.Up, rows)
@@ -107,8 +109,7 @@ func prepare(rows int) {
 func cleanup(rows int) {
 	osc.ShowCursor()
 	if rows == 0 {
-		size, _ := osc.Size()
-		rows = size.Row
+		rows, _ = osc.Rows()
 	}
 	osc.CursorMove(osc.Down, rows)
 	print("\n")
