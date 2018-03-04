@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
-	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -21,9 +21,16 @@ func main() {
 	steps := flag.Int("steps", 100, "Number of values to plot.")
 	flag.Parse()
 
+	if os.Getenv("TERM_PROGRAM") != "iTerm.app" {
+		fatal("iTerm2 required")
+	}
+	if os.Getenv("TERM") == "screen" {
+		fatal("screen and tmux not supported")
+	}
+
 	specs, err := data.ParseSpec(flag.Args())
 	if err != nil {
-		log.Fatalf("Cannot parse spec: %v", err)
+		fatal("Cannot parse spec: ", err)
 	}
 	var dp *data.Points
 	if *url != "" {
@@ -51,7 +58,7 @@ func main() {
 		for {
 			width, height, err := window.Size()
 			if err != nil {
-				log.Fatalf("Cannot get window size: %v", err)
+				fatal("Cannot get window size: ", err)
 			}
 			select {
 			case <-t.C:
@@ -69,8 +76,13 @@ func main() {
 	}()
 
 	if err := dp.Run(specs); err != nil {
-		log.Fatalf("Data source error: %v", err)
+		fatal("Data source error: ", err)
 	}
+}
+
+func fatal(a ...interface{}) {
+	fmt.Println(append([]interface{}{"jplot: "}, a...)...)
+	os.Exit(1)
 }
 
 func render(dash graph.Dash, width, height int) {
