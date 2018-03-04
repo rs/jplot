@@ -18,7 +18,7 @@ type res struct {
 	err error
 }
 
-// FromHTTP fetch data points from url every interval and keep size points.
+// FromHTTP fetches data points from url every interval and keep size points.
 func FromHTTP(url string, interval time.Duration, size int) *Points {
 	h := httpSource{
 		c:    make(chan res),

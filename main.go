@@ -36,7 +36,15 @@ func main() {
 	}
 	var dp *data.Points
 	if *url != "" {
-		dp = data.FromHTTP(*url, *interval, *steps)
+		if strings.HasPrefix(*url, "datadog://") {
+			keys := strings.Split((*url)[10:], "/")
+			if len(keys) != 2 {
+				fatal("invalid datadog url, format is datadog://apiKey/appKey")
+			}
+			dp = data.FromDatadog(keys[0], keys[1], specs, *interval, *steps)
+		} else {
+			dp = data.FromHTTP(*url, *interval, *steps)
+		}
 	} else {
 		dp = data.FromStdin(*steps)
 	}
