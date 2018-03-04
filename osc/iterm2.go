@@ -12,9 +12,19 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+var ecsi = "\033]"
+var st = "\007"
+
+func init() {
+	if os.Getenv("TERM") == "screen" {
+		ecsi = "\033Ptmux;\033" + ecsi
+		st += "\033\\"
+	}
+}
+
 // ClearScrollback clears iTerm2 scrollback.
 func ClearScrollback() {
-	print("\033]1337;ClearScrollback\007")
+	print(ecsi + "1337;ClearScrollback" + st)
 }
 
 // TermSize contains sizing information of the terminal.
@@ -37,7 +47,7 @@ func Size() (size TermSize, err error) {
 	}
 	defer terminal.Restore(1, s)
 	var cellWidth, cellHeight float64
-	fmt.Fprint(os.Stdout, "\033]1337;ReportCellSize\033\\")
+	fmt.Fprint(os.Stdout, ecsi+"1337;ReportCellSize"+st)
 	fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
 	defer fileSetReadDeadline(os.Stdout, time.Time{})
 	_, err = fmt.Fscanf(os.Stdout, "\033]1337;ReportCellSize=%f;%f\033\\", &cellHeight, &cellWidth)
@@ -67,6 +77,6 @@ func (w *ImageWriter) Write(p []byte) (n int, err error) {
 
 func (w *ImageWriter) Close() error {
 	w.once.Do(w.init)
-	fmt.Printf("\033]1337;File=preserveAspectRatio=1;inline=1:%s\007", w.buf.Bytes())
+	fmt.Printf("%s1337;File=preserveAspectRatio=1;inline=1:%s%s", ecsi, w.buf.Bytes(), st)
 	return w.b66enc.Close()
 }
