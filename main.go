@@ -12,7 +12,6 @@ import (
 	"github.com/rs/jplot/data"
 	"github.com/rs/jplot/graph"
 	"github.com/rs/jplot/osc"
-	"github.com/rs/jplot/window"
 )
 
 func main() {
@@ -61,7 +60,7 @@ func main() {
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		i := 0
 		for {
-			width, height, err := window.Size()
+			size, err := osc.Size()
 			if err != nil {
 				fatal("Cannot get window size: ", err)
 			}
@@ -72,9 +71,9 @@ func main() {
 					// Clear scrollback to avoid iTerm from eating all the memory.
 					osc.ClearScrollback()
 				}
-				render(dash, width, height)
+				render(dash, size.Width, size.Height)
 			case <-exit:
-				render(dash, width, height)
+				render(dash, size.Width, size.Height)
 				return
 			case <-c:
 				osc.ShowCursor()

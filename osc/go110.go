@@ -1,6 +1,6 @@
 // +build go1.10
 
-package window
+package osc
 
 import (
 	"os"
