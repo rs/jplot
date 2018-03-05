@@ -86,11 +86,13 @@ func (w *ImageWriter) init() {
 	w.b66enc = base64.NewEncoder(base64.StdEncoding, w.buf)
 }
 
+// Write writes the PNG image data into the ImageWriter buffer.
 func (w *ImageWriter) Write(p []byte) (n int, err error) {
 	w.once.Do(w.init)
 	return w.b66enc.Write(p)
 }
 
+// Close flushes the image to the terminal and close the writer.
 func (w *ImageWriter) Close() error {
 	w.once.Do(w.init)
 	fmt.Printf("%s1337;File=preserveAspectRatio=1;inline=1:%s%s", ecsi, w.buf.Bytes(), st)

@@ -2,6 +2,7 @@ package osc
 
 import "fmt"
 
+// Direction constants are to be used with CursorMove.
 type Direction string
 
 const (
@@ -9,7 +10,7 @@ const (
 	Up Direction = "A"
 	// Down moves the cursor down.
 	Down Direction = "B"
-	// Forward moves the cursor foward.
+	// Forward moves the cursor forward.
 	Forward Direction = "C"
 	// Backward moves the cursor backward.
 	Backward Direction = "D"
@@ -48,10 +49,12 @@ func CursorMove(d Direction, n int) {
 	fmt.Printf("%s%d%s", csi, n, d)
 }
 
+// CursorSavePosition saves the cursor position/state.
 func CursorSavePosition() {
 	print(csi + "s")
 }
 
+// CursorRestorePosition restores the cursor position/state.
 func CursorRestorePosition() {
 	print(csi + "u")
 }
