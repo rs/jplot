@@ -17,7 +17,7 @@ import (
 
 func main() {
 	flag.Usage = func() {
-		out := flag.CommandLine.Output()
+		out := os.Stderr
 		fmt.Fprintln(out, "Usage: jplot [OPTIONS] FIELD_SPEC [FIELD_SPEC...]:")
 		fmt.Fprintln(out, "")
 		fmt.Fprintln(out, "OPTIONS:")
