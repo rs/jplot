@@ -83,6 +83,8 @@ Supported options are:
 * `counter`: Computes the difference with the last value. The value must increase monotonically.
 * `marker`: When the value is none-zero, a vertical line is drawn.
 
+## Recipes
+
 ### Memstats
 
 Here is an example command to graph a Go program memstats:
@@ -97,4 +99,21 @@ jplot --url http://:8080/debug/vars \
 
 ![](doc/memstats.png)
 
+### Vegeta
 
+With the help of [jaggr](https://github.com/rs/jaggr] can be used to integrate [vegeta](https://github.com/tsenart/vegeta) with jplot as follow:
+
+```
+echo 'GET http://localhost:8080' | \
+    vegeta attack -rate 5000 -workers 100 -duration 10m | vegeta dump | \
+    jaggr @count=rps \
+          hist\[100,200,300,400,500\]:code \
+          p25,p50,p95:latency \
+          sum:bytes_in \
+          sum:bytes_out | \
+    jplot rps+code.hist.100+code.hist.200+code.hist.300+code.hist.400+code.hist.500 \
+          latency.p95+latency.p50+latency.p25 \
+          bytes_in.sum+bytes_out.sum
+```
+
+![](doc/vegeta.gif)
