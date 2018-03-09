@@ -101,7 +101,7 @@ jplot --url http://:8080/debug/vars \
 
 ### Vegeta
 
-With the help of [jaggr](https://github.com/rs/jaggr] can be used to integrate [vegeta](https://github.com/tsenart/vegeta) with jplot as follow:
+With the help of [jaggr](https://github.com/rs/jaggr) can be used to integrate [vegeta](https://github.com/tsenart/vegeta) with jplot as follow:
 
 ```
 echo 'GET http://localhost:8080' | \

@@ -16,6 +16,20 @@ import (
 )
 
 func main() {
+	flag.Usage = func() {
+		out := flag.CommandLine.Output()
+		fmt.Fprintln(out, "Usage: jplot [OPTIONS] FIELD_SPEC [FIELD_SPEC...]:")
+		fmt.Fprintln(out, "")
+		fmt.Fprintln(out, "OPTIONS:")
+		flag.PrintDefaults()
+		fmt.Fprintln(out, "")
+		fmt.Fprintln(out, "FIELD_SPEC: [<option>[,<option>...]:]path")
+		fmt.Fprintln(out, "  option:")
+		fmt.Fprintln(out, "    - counter: Computes the difference with the last value. The value must increase monotonically.")
+		fmt.Fprintln(out, "    - marker: When the value is none-zero, a vertical line is drawn.")
+		fmt.Fprintln(out, "  path:")
+		fmt.Fprintln(out, "    JSON field path (eg: field.sub-field).")
+	}
 	url := flag.String("url", "", "URL to fetch every second. Read JSON objects from stdin if not specified.")
 	interval := flag.Duration("interval", time.Second, "When url is provided, defines the interval between fetches."+
 		" Note that counter fields are computed based on this interval.")
