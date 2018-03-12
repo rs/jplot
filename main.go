@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/monochromegane/terminal"
 	"github.com/rs/jplot/data"
 	"github.com/rs/jplot/graph"
 	"github.com/rs/jplot/osc"
@@ -44,6 +45,11 @@ func main() {
 		fatal("screen and tmux not supported")
 	}
 
+	if len(flag.Args()) == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	specs, err := data.ParseSpec(flag.Args())
 	if err != nil {
 		fatal("Cannot parse spec: ", err)
@@ -51,8 +57,10 @@ func main() {
 	var dp *data.Points
 	if *url != "" {
 		dp = data.FromHTTP(*url, *interval, *steps)
-	} else {
+	} else if !terminal.IsTerminal(os.Stdin) {
 		dp = data.FromStdin(*steps)
+	} else {
+		fatal("neither --url nor stdin is provided")
 	}
 	dash := graph.Dash{
 		Specs: specs,
