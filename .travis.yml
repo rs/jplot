@@ -1,11 +1,21 @@
 language: go
 go:
-- "1.8"
-- "1.9"
-- "1.10"
+- '1.8'
+- '1.9'
+- '1.10'
 - master
 matrix:
   allow_failures:
-      - go: master
-script:
-  go test -v -race -cpu=1,2,4 -bench . -benchmem ./...
+  - go: master
+script: go test -v -race -cpu=1,2,4 -bench . -benchmem ./...
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: curl -sL http://git.io/goreleaser | bash
+  on:
+    tags: true
+    condition: "$TRAVIS_OS_NAME = linux && $TRAVIS_GO_VERSION = '1.10'"
+env:
+  global:
+    # travis encrypt GITHUB_TOKEN=$GITHUB_TOKEN --add
+    secure: I9Yst+EOHkjqLzRSbF1ivVdrSEXx3FZ98pK9SAf6xY0v6PBBRovWFHhfEWoeecgawcrHb+C/CKT/Tk3CYSmn1HWB6TTbSnL70LD0aGv+Zc4TnSFTj9X8gJbUkjV1nFKANBpef/IxftlGA5U7LWrDNzuiaMF8Rv2XHaH63vgEuv/9O4NZcuB/z+QdPIWHGH7cKz8AOb4SaR1uAVX/lZBMVzp3VuPU4WC2XkVYruaJMrUs1mhMrY/MGrQvmPueyY1y244W457oMCKGcY25KU4oDDmjgVx4J6+YS+BRvLtJa1TR4rk4GfieOVsCBMLjdHC/JHGQFR04hRE4aqEvPnVAgsooxD5dcMSyK81V2IUiKTEhusEBaN+4CCWvlntSvuMIxdtEDaQnGHOaRFeCHXxZGMjjrPT+a/eXepNcxLaTEQ2+hwEdEykSjPRvCsnx60DxsRUn1sM86/ixtdpv2QvRqUKh8fE+ltkxBQL36K8QviDNP6Oj3UCuCDL3+DJqQwlk5RMmg3kaSYHcnJ1z7QH4VbNpMSZsYh3SA+LsTey8KbJb9z954UTCacFBfFsKfrgSJWcSbLU1MF+5EB45WSKZTNk99e9WB+qlDSFPY+DF+V9qwokV1m/AI2xlYr0eSvMfMwd1jUvFCFyqSmfbOI0t2flWQ+UdQSL8yfs69N6uPzk=

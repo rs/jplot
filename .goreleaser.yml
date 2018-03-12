@@ -1,0 +1,21 @@
+project_name: jplot
+builds:
+-
+  env:
+  - CGO_ENABLED=0
+  goos:
+  - darwin
+git:
+  short_hash: true
+brew:
+  github:
+    owner: rs
+    name: homebrew-tap
+  commit_author:
+    name: Olivier Poitrey
+    email: rs@rhapsodyk.net
+  homepage: https://github.com/rs/jplot
+  description: iTerm2 expvar/JSON monitoring tool
+
+release:
+  name_template: "{{.ProjectName}}-v{{.Version}}"
