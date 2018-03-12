@@ -21,6 +21,14 @@ By default, jplot uses the full size of the terminal, but it is possible to limi
 
 ## Install
 
+Using [homebrew](http://brew.sh/):
+
+```
+brew install https://raw.githubusercontent.com/rs/jplot/master/jplot.rb
+```
+
+From source:
+
 ```
 go get -u github.com/rs/jplot
 ```
