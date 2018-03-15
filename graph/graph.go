@@ -42,8 +42,10 @@ func New(spec data.Spec, dp *data.Points, width, height int) chart.Chart {
 }
 
 func newChart(series []chart.Series, markers []chart.GridLine, width, height int) chart.Chart {
+	var min, max float64 = math.MaxFloat64, -math.MaxFloat64
 	for i, s := range series {
 		if s, ok := s.(chart.ContinuousSeries); ok {
+			min, max = minMax(s.YValues, min, max)
 			s.XValues = seq.Range(0, float64(len(s.YValues)-1))
 			c := chart.GetAlternateColor(i + 4)
 			s.Style = chart.Style{
@@ -74,6 +76,15 @@ func newChart(series []chart.Series, markers []chart.GridLine, width, height int
 		},
 		Series: series,
 	}
+	if min == max {
+		// By default, go-chart will fail to render a flat line as the range will be NaN.
+		// Define a manual range in such case.
+		// See https://github.com/wcharczuk/go-chart/issues/31
+		graph.YAxis.Range = &chart.ContinuousRange{
+			Min: min - 0.05,
+			Max: max + 0.05,
+		}
+	}
 	if len(markers) > 0 {
 		graph.Background.Padding.Bottom = 0 // compensate transparent tick space
 		graph.XAxis = chart.XAxis{
@@ -99,6 +110,19 @@ func newChart(series []chart.Series, markers []chart.GridLine, width, height int
 		}),
 	}
 	return graph
+}
+
+func minMax(values []float64, curMin, curMax float64) (min, max float64) {
+	min, max = curMin, curMax
+	for _, value := range values {
+		if value < min {
+			min = value
+		}
+		if value > max {
+			max = value
+		}
+	}
+	return
 }
 
 func siValueFormater(v interface{}) string {

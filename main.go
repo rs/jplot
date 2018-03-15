@@ -151,5 +151,7 @@ func render(dash graph.Dash, rows int) {
 	// Use iTerm2 image display feature.
 	term := &osc.ImageWriter{}
 	defer term.Close()
-	dash.Render(term, width, height)
+	if err := dash.Render(term, width, height); err != nil {
+		fatal(fmt.Sprintf("cannot render graph: %v", err.Error()))
+	}
 }

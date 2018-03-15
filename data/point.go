@@ -58,7 +58,7 @@ func (p *Points) push(name string, value float64, counter bool) {
 	d := p.getLocked(name)
 	if counter {
 		var diff float64
-		if last := p.last[name]; last > 0 {
+		if last := p.last[name]; last > 0 && last < diff {
 			diff = value - last
 		}
 		p.last[name] = value
