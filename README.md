@@ -1,7 +1,7 @@
 # jplot
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/jplot/master/LICENSE) [![Build Status](https://travis-ci.org/rs/jplot.svg?branch=master)](https://travis-ci.org/rs/jplot)
 
-Jplot tracks expvar-like (JSON) metrics and plot their evolution over time right into your iTerm2 terminal.
+Jplot tracks expvar-like (JSON) metrics and plot their evolution over time right into your iTerm2 terminal (or DRCS Sixel Graphics).
 
 ![](doc/demo.gif)
 
@@ -33,7 +33,7 @@ From source:
 go get -u github.com/rs/jplot
 ```
 
-This tool does only work with [iTerm2](https://www.iterm2.com).
+This tool does only work with [iTerm2](https://www.iterm2.com), or terminals support DRCS Sixel Graphics.
 
 ## Usage
 
