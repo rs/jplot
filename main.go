@@ -16,6 +16,10 @@ import (
 	"github.com/rs/jplot/osc"
 )
 
+var (
+	supportSixel = false
+)
+
 func main() {
 	flag.Usage = func() {
 		out := os.Stderr
@@ -39,7 +43,9 @@ func main() {
 	flag.Parse()
 
 	if os.Getenv("TERM_PROGRAM") != "iTerm.app" {
-		fatal("iTerm2 required")
+		if !osc.IsSixelSupported() {
+			fatal("iTerm2 or DRCS Sixel graphics required")
+		}
 	}
 	if os.Getenv("TERM") == "screen" {
 		fatal("screen and tmux not supported")
@@ -149,10 +155,7 @@ func render(dash graph.Dash, rows int) {
 		rows = size.Row
 	}
 	// Use iTerm2 image display feature.
-	term := &osc.ImageWriter{
-		Width:  width,
-		Height: height,
-	}
+	term := osc.NewImageWriter()
 	defer term.Close()
 	if err := dash.Render(term, width, height); err != nil {
 		fatal(fmt.Sprintf("cannot render graph: %v", err.Error()))
