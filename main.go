@@ -16,10 +16,6 @@ import (
 	"github.com/rs/jplot/osc"
 )
 
-var (
-	supportSixel = false
-)
-
 func main() {
 	flag.Usage = func() {
 		out := os.Stderr
