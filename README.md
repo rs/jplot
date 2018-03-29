@@ -125,3 +125,14 @@ echo 'GET http://localhost:8080' | \
 ```
 
 ![](doc/vegeta.gif)
+
+### Supported Terminals
+
+* [xterm](http://invisible-island.net/xterm/)
+* [iTerm2](https://www.iterm2.com/) on OSX
+* [mintty](https://mintty.github.io/) on UNIX OSs via SSH
+* [mlterm](https://sourceforge.net/projects/mlterm/) on Linux and Windows
+* [RLogin](http://nanno.dip.jp/softlib/man/rlogin/) on Windows
+* [yaft](http://uobikiemukot.github.io/yaft/) on Linux console
+* [yaft-android](https://github.com/uobikiemukot/yaft-android) on Android
+* [Tanasinn](http://saitoha.github.io/tanasinn/) on Firefox/Thunderbird
