@@ -60,8 +60,8 @@ func checkSixel() bool {
 	return false
 }
 
-func IsSixelSupported() bool {
-	return sixelEnabled
+func HasGraphicsSupport() bool {
+	return os.Getenv("TERM_PROGRAM") == "iTerm.app" || sixelEnabled
 }
 
 // ClearScrollback clears iTerm2 scrollback.
