@@ -38,10 +38,8 @@ func main() {
 	rows := flag.Int("rows", 0, "Limits the height of the graph output.")
 	flag.Parse()
 
-	if os.Getenv("TERM_PROGRAM") != "iTerm.app" {
-		if !osc.IsSixelSupported() {
-			fatal("iTerm2 or DRCS Sixel graphics required")
-		}
+	if !osc.HasGraphicsSupport() {
+		fatal("iTerm2 or DRCS Sixel graphics required")
 	}
 	if os.Getenv("TERM") == "screen" {
 		fatal("screen and tmux not supported")
