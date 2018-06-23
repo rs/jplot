@@ -74,7 +74,9 @@ func Rows() (rows int, err error) {
 // ImageWriter is a writer that write into iTerm2 terminal the PNG data written
 // to it.
 type ImageWriter struct {
-	Name string
+	Name   string
+	Width  int
+	Height int
 
 	once   sync.Once
 	b66enc io.WriteCloser
@@ -95,6 +97,6 @@ func (w *ImageWriter) Write(p []byte) (n int, err error) {
 // Close flushes the image to the terminal and close the writer.
 func (w *ImageWriter) Close() error {
 	w.once.Do(w.init)
-	fmt.Printf("%s1337;File=preserveAspectRatio=1;inline=1:%s%s", ecsi, w.buf.Bytes(), st)
+	fmt.Printf("%s1337;File=preserveAspectRatio=1;width=%dpx;height=%dpx;inline=1:%s%s", ecsi, w.Width, w.Height, w.buf.Bytes(), st)
 	return w.b66enc.Close()
 }
