@@ -79,24 +79,24 @@ type ImageWriter struct {
 	Height int
 
 	once   sync.Once
-	b66enc io.WriteCloser
+	b64enc io.WriteCloser
 	buf    *bytes.Buffer
 }
 
 func (w *ImageWriter) init() {
 	w.buf = &bytes.Buffer{}
-	w.b66enc = base64.NewEncoder(base64.StdEncoding, w.buf)
+	w.b64enc = base64.NewEncoder(base64.StdEncoding, w.buf)
 }
 
 // Write writes the PNG image data into the ImageWriter buffer.
 func (w *ImageWriter) Write(p []byte) (n int, err error) {
 	w.once.Do(w.init)
-	return w.b66enc.Write(p)
+	return w.b64enc.Write(p)
 }
 
 // Close flushes the image to the terminal and close the writer.
 func (w *ImageWriter) Close() error {
 	w.once.Do(w.init)
 	fmt.Printf("%s1337;File=preserveAspectRatio=1;width=%dpx;height=%dpx;inline=1:%s%s", ecsi, w.Width, w.Height, w.buf.Bytes(), st)
-	return w.b66enc.Close()
+	return w.b64enc.Close()
 }
