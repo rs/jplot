@@ -16,6 +16,7 @@ var st = "\007"
 
 var cellSizeOnce sync.Once
 var cellWidth, cellHeight float64
+var termWidth, termHeight int
 
 func HasGraphicsSupport() bool {
 	return os.Getenv("TERM_PROGRAM") == "iTerm.app" || sixelEnabled
@@ -23,7 +24,9 @@ func HasGraphicsSupport() bool {
 
 // ClearScrollback clears iTerm2 scrollback.
 func ClearScrollback() {
-	print(ecsi + "1337;ClearScrollback" + st)
+	if !sixelEnabled {
+		print(ecsi + "1337;ClearScrollback" + st)
+	}
 }
 
 // TermSize contains sizing information of the terminal.
@@ -46,8 +49,10 @@ func initCellSize() {
 		defer fileSetReadDeadline(os.Stdout, time.Time{})
 		fmt.Fscanf(os.Stdout, "\033]1337;ReportCellSize=%f;%f\033\\", &cellHeight, &cellWidth)
 	} else {
-		// FIXME Way to get sizes from terminal response?
-		cellWidth, cellHeight = 8, 8
+		fmt.Fprint(os.Stdout, "\033[14t")
+		fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
+		defer fileSetReadDeadline(os.Stdout, time.Time{})
+		fmt.Fscanf(os.Stdout, "\033[4;%d;%dt", &termHeight, &termWidth)
 	}
 }
 
@@ -58,7 +63,11 @@ func Size() (size TermSize, err error) {
 		return
 	}
 	cellSizeOnce.Do(initCellSize)
-	if cellWidth+cellHeight == 0 {
+	if termWidth > 0 && termHeight > 0 {
+		size.Width = int(termWidth/(size.Col-1)) * (size.Col - 1)
+		size.Height = int(termHeight/(size.Row-1)) * (size.Row - 1)
+		return
+	} else if cellWidth+cellHeight == 0 {
 		err = errors.New("cannot get terminal cell size")
 	}
 	size.Width, size.Height = size.Col*int(cellWidth), size.Row*int(cellHeight)
