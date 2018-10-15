@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/mattn/go-sixel"
-
 	"golang.org/x/crypto/ssh/terminal"
 )
 
