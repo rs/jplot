@@ -16,8 +16,7 @@ func init() {
 	}
 }
 
-// ImageWriter is a writer that write into iTerm2 terminal the PNG data written
-// to it.
+// imageWriter is a writer that write into iTerm2 terminal the PNG data written
 type imageWriter struct {
 	Name   string
 	Width  int

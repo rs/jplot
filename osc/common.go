@@ -67,7 +67,8 @@ func Size() (size TermSize, err error) {
 		size.Width = int(termWidth/(size.Col-1)) * (size.Col - 1)
 		size.Height = int(termHeight/(size.Row-1)) * (size.Row - 1)
 		return
-	} else if cellWidth+cellHeight == 0 {
+	}
+	if cellWidth+cellHeight == 0 {
 		err = errors.New("cannot get terminal cell size")
 	}
 	size.Width, size.Height = size.Col*int(cellWidth), size.Row*int(cellHeight)
