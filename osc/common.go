@@ -80,9 +80,15 @@ func Rows() (rows int, err error) {
 	return
 }
 
-func NewImageWriter() io.WriteCloser {
+func NewImageWriter(width, height int) io.WriteCloser {
 	if !sixelEnabled {
-		return &imageWriter{}
+		return &imageWriter{
+			Width:  width,
+			Height: height,
+		}
 	}
-	return &sixelWriter{}
+	return &sixelWriter{
+		Width:  width,
+		Height: height,
+	}
 }

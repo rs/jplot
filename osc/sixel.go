@@ -49,6 +49,10 @@ func checkSixel() bool {
 }
 
 type sixelWriter struct {
+	Name   string
+	Width  int
+	Height int
+
 	once sync.Once
 	enc  *sixel.Encoder
 	buf  *bytes.Buffer
