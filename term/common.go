@@ -43,17 +43,17 @@ func initCellSize() {
 		return
 	}
 	defer terminal.Restore(1, s)
-	if !sixelEnabled {
-		fmt.Fprint(os.Stdout, ecsi+"1337;ReportCellSize"+st)
-		fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
-		defer fileSetReadDeadline(os.Stdout, time.Time{})
-		fmt.Fscanf(os.Stdout, "\033]1337;ReportCellSize=%f;%f\033\\", &cellHeight, &cellWidth)
-	} else {
+	if sixelEnabled {
 		fmt.Fprint(os.Stdout, "\033[14t")
 		fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
 		defer fileSetReadDeadline(os.Stdout, time.Time{})
 		fmt.Fscanf(os.Stdout, "\033[4;%d;%dt", &termHeight, &termWidth)
+		return
 	}
+	fmt.Fprint(os.Stdout, ecsi+"1337;ReportCellSize"+st)
+	fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
+	defer fileSetReadDeadline(os.Stdout, time.Time{})
+	fmt.Fscanf(os.Stdout, "\033]1337;ReportCellSize=%f;%f\033\\", &cellHeight, &cellWidth)
 }
 
 // Size gathers sizing information of the current session's controling terminal.
@@ -82,13 +82,13 @@ func Rows() (rows int, err error) {
 }
 
 func NewImageWriter(width, height int) io.WriteCloser {
-	if !sixelEnabled {
-		return &imageWriter{
+	if sixelEnabled {
+		return &sixelWriter{
 			Width:  width,
 			Height: height,
 		}
 	}
-	return &sixelWriter{
+	return &imageWriter{
 		Width:  width,
 		Height: height,
 	}
