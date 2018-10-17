@@ -13,7 +13,7 @@ import (
 	"github.com/monochromegane/terminal"
 	"github.com/rs/jplot/data"
 	"github.com/rs/jplot/graph"
-	"github.com/rs/jplot/osc"
+	"github.com/rs/jplot/term"
 )
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 	rows := flag.Int("rows", 0, "Limits the height of the graph output.")
 	flag.Parse()
 
-	if !osc.HasGraphicsSupport() {
+	if !term.HasGraphicsSupport() {
 		fatal("iTerm2 or DRCS Sixel graphics required")
 	}
 	if os.Getenv("TERM") == "screen" {
@@ -89,11 +89,11 @@ func main() {
 				i++
 				if i%120 == 0 {
 					// Clear scrollback to avoid iTerm from eating all the memory.
-					osc.ClearScrollback()
+					term.ClearScrollback()
 				}
-				osc.CursorSavePosition()
+				term.CursorSavePosition()
 				render(dash, *rows)
-				osc.CursorRestorePosition()
+				term.CursorRestorePosition()
 			case <-exit:
 				if i == 0 {
 					render(dash, *rows)
@@ -117,28 +117,28 @@ func fatal(a ...interface{}) {
 }
 
 func prepare(rows int) {
-	osc.HideCursor()
+	term.HideCursor()
 	if rows == 0 {
 		var err error
-		if rows, err = osc.Rows(); err != nil {
+		if rows, err = term.Rows(); err != nil {
 			fatal("Cannot get window size: ", err)
 		}
 	}
 	print(strings.Repeat("\n", rows))
-	osc.CursorMove(osc.Up, rows)
+	term.CursorMove(term.Up, rows)
 }
 
 func cleanup(rows int) {
-	osc.ShowCursor()
+	term.ShowCursor()
 	if rows == 0 {
-		rows, _ = osc.Rows()
+		rows, _ = term.Rows()
 	}
-	osc.CursorMove(osc.Down, rows)
+	term.CursorMove(term.Down, rows)
 	print("\n")
 }
 
 func render(dash graph.Dash, rows int) {
-	size, err := osc.Size()
+	size, err := term.Size()
 	if err != nil {
 		fatal("Cannot get window size: ", err)
 	}
@@ -149,7 +149,7 @@ func render(dash graph.Dash, rows int) {
 		rows = size.Row
 	}
 	// Use iTerm2 image display feature.
-	term := osc.NewImageWriter(width, height)
+	term := term.NewImageWriter(width, height)
 	defer term.Close()
 	if err := dash.Render(term, width, height); err != nil {
 		fatal(fmt.Sprintf("cannot render graph: %v", err.Error()))
