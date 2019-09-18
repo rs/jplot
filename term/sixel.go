@@ -36,10 +36,23 @@ func checkSixel() bool {
 	if err != nil {
 		return false
 	}
-	if !bytes.HasPrefix(b[:n], []byte("\x1b[?63;")) {
+	var supportedTerminals = []string{
+		"\x1b[?62;", // VT240
+		"\x1b[?63;", // wsltty
+		"\x1b[?64;", // mintty
+		"\x1b[?65;", // RLogin
+	}
+	supported := false
+	for _, supportedTerminal := range supportedTerminals {
+		if bytes.HasPrefix(b[:n], []byte(supportedTerminal)) {
+			supported = true
+			break
+		}
+	}
+	if !supported {
 		return false
 	}
-	for _, t := range bytes.Split(b[4:n], []byte(";")) {
+	for _, t := range bytes.Split(b[6:n], []byte(";")) {
 		if len(t) == 1 && t[0] == '4' {
 			return true
 		}
