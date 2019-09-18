@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattn/go-isatty"
 	"github.com/mattn/go-sixel"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -20,6 +21,9 @@ func init() {
 }
 
 func checkSixel() bool {
+	if isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+		return true
+	}
 	s, err := terminal.MakeRaw(1)
 	if err != nil {
 		return false
