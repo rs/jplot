@@ -37,7 +37,7 @@ func legend(c *chart.Chart, userDefaults ...chart.Style) chart.Renderable {
 		var labels []string
 		var lines []chart.Style
 		for _, s := range c.Series {
-			if s.GetStyle().IsZero() || s.GetStyle().Show {
+			if s.GetStyle().IsZero() || !s.GetStyle().Hidden {
 				if _, isAnnotationSeries := s.(chart.AnnotationSeries); !isAnnotationSeries {
 					labels = append(labels, s.GetName())
 					lines = append(lines, s.GetStyle())

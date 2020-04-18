@@ -1,8 +1,6 @@
-package osc
+package term
 
 import (
-	"bytes"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -18,17 +16,17 @@ var st = "\007"
 
 var cellSizeOnce sync.Once
 var cellWidth, cellHeight float64
+var termWidth, termHeight int
 
-func init() {
-	if os.Getenv("TERM") == "screen" {
-		ecsi = "\033Ptmux;\033" + ecsi
-		st += "\033\\"
-	}
+func HasGraphicsSupport() bool {
+	return os.Getenv("TERM_PROGRAM") == "iTerm.app" || sixelEnabled
 }
 
 // ClearScrollback clears iTerm2 scrollback.
 func ClearScrollback() {
-	print(ecsi + "1337;ClearScrollback" + st)
+	if !sixelEnabled {
+		print(ecsi + "1337;ClearScrollback" + st)
+	}
 }
 
 // TermSize contains sizing information of the terminal.
@@ -45,6 +43,13 @@ func initCellSize() {
 		return
 	}
 	defer terminal.Restore(1, s)
+	if sixelEnabled {
+		fmt.Fprint(os.Stdout, "\033[14t")
+		fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
+		defer fileSetReadDeadline(os.Stdout, time.Time{})
+		fmt.Fscanf(os.Stdout, "\033[4;%d;%dt", &termHeight, &termWidth)
+		return
+	}
 	fmt.Fprint(os.Stdout, ecsi+"1337;ReportCellSize"+st)
 	fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
 	defer fileSetReadDeadline(os.Stdout, time.Time{})
@@ -58,8 +63,13 @@ func Size() (size TermSize, err error) {
 		return
 	}
 	cellSizeOnce.Do(initCellSize)
+	if termWidth > 0 && termHeight > 0 {
+		size.Width = int(termWidth/(size.Col-1)) * (size.Col - 1)
+		size.Height = int(termHeight/(size.Row-1)) * (size.Row - 1)
+		return
+	}
 	if cellWidth+cellHeight == 0 {
-		err = errors.New("cannot get iTerm2 cell size")
+		err = errors.New("cannot get terminal cell size")
 	}
 	size.Width, size.Height = size.Col*int(cellWidth), size.Row*int(cellHeight)
 	return
@@ -71,32 +81,15 @@ func Rows() (rows int, err error) {
 	return
 }
 
-// ImageWriter is a writer that write into iTerm2 terminal the PNG data written
-// to it.
-type ImageWriter struct {
-	Name   string
-	Width  int
-	Height int
-
-	once   sync.Once
-	b64enc io.WriteCloser
-	buf    *bytes.Buffer
-}
-
-func (w *ImageWriter) init() {
-	w.buf = &bytes.Buffer{}
-	w.b64enc = base64.NewEncoder(base64.StdEncoding, w.buf)
-}
-
-// Write writes the PNG image data into the ImageWriter buffer.
-func (w *ImageWriter) Write(p []byte) (n int, err error) {
-	w.once.Do(w.init)
-	return w.b64enc.Write(p)
-}
-
-// Close flushes the image to the terminal and close the writer.
-func (w *ImageWriter) Close() error {
-	w.once.Do(w.init)
-	fmt.Printf("%s1337;File=preserveAspectRatio=1;width=%dpx;height=%dpx;inline=1:%s%s", ecsi, w.Width, w.Height, w.buf.Bytes(), st)
-	return w.b64enc.Close()
+func NewImageWriter(width, height int) io.WriteCloser {
+	if sixelEnabled {
+		return &sixelWriter{
+			Width:  width,
+			Height: height,
+		}
+	}
+	return &imageWriter{
+		Width:  width,
+		Height: height,
+	}
 }

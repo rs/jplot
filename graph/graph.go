@@ -8,7 +8,6 @@ import (
 	"github.com/rs/jplot/data"
 	chart "github.com/wcharczuk/go-chart"
 	"github.com/wcharczuk/go-chart/drawing"
-	"github.com/wcharczuk/go-chart/seq"
 )
 
 func init() {
@@ -46,17 +45,17 @@ func newChart(series []chart.Series, markers []chart.GridLine, width, height int
 	for i, s := range series {
 		if s, ok := s.(chart.ContinuousSeries); ok {
 			min, max = minMax(s.YValues, min, max)
-			s.XValues = seq.Range(0, float64(len(s.YValues)-1))
+			s.XValues = chart.LinearRange(0, float64(len(s.YValues)-1))
 			c := chart.GetAlternateColor(i + 4)
 			s.Style = chart.Style{
-				Show:        true,
+				Hidden:      false,
 				StrokeWidth: 2,
 				StrokeColor: c,
 				FillColor:   c.WithAlpha(20),
 				FontSize:    9,
 			}
 			series[i] = s
-			last := chart.LastValueAnnotation(s, siValueFormater)
+			last := chart.LastValueAnnotationSeries(s, siValueFormater)
 			last.Style.FillColor = c
 			last.Style.FontColor = textColor(c)
 			last.Style.FontSize = 9
@@ -71,7 +70,7 @@ func newChart(series []chart.Series, markers []chart.GridLine, width, height int
 			Padding: chart.NewBox(5, 0, 0, 5),
 		},
 		YAxis: chart.YAxis{
-			Style:          chart.StyleShow(),
+			Style:          chart.Shown(),
 			ValueFormatter: siValueFormater,
 		},
 		Series: series,
@@ -88,13 +87,13 @@ func newChart(series []chart.Series, markers []chart.GridLine, width, height int
 	if len(markers) > 0 {
 		graph.Background.Padding.Bottom = 0 // compensate transparent tick space
 		graph.XAxis = chart.XAxis{
-			Style: chart.StyleShow(),
+			Style: chart.Shown(),
 			TickStyle: chart.Style{
 				StrokeColor: chart.ColorTransparent,
 			},
 			TickPosition: 10, // hide text with non-existing position
 			GridMajorStyle: chart.Style{
-				Show:            true,
+				Hidden:          false,
 				StrokeColor:     chart.ColorAlternateGray.WithAlpha(100),
 				StrokeWidth:     2.0,
 				StrokeDashArray: []float64{2.0, 2.0},
