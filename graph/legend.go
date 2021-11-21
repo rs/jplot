@@ -3,8 +3,8 @@ package graph
 import (
 	"math"
 
-	chart "github.com/wcharczuk/go-chart"
-	"github.com/wcharczuk/go-chart/drawing"
+	chart "github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 // custom version of chart.Legend
