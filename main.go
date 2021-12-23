@@ -3,6 +3,7 @@ package main // import "github.com/rs/jplot"
 import (
 	"flag"
 	"fmt"
+	"github.com/rs/jplot/streamer"
 	"os"
 	"os/signal"
 	"strings"
@@ -28,6 +29,10 @@ func main() {
 		fmt.Fprintln(out, "  option:")
 		fmt.Fprintln(out, "    - counter: Computes the difference with the last value. The value must increase monotonically.")
 		fmt.Fprintln(out, "    - marker: When the value is none-zero, a vertical line is drawn.")
+		fmt.Fprintln(out, "    - port: launches a web-server that will be drawing images. This disables drawing in terminal")
+		fmt.Fprintln(out, "    - hiw (http image width): defines web server's image width")
+		fmt.Fprintln(out, "    - hih (http image height): defines web server's image width")
+		fmt.Fprintln(out, "    - hirr (http image refresh rate): how often image will be refreshed (milliseconds)")
 		fmt.Fprintln(out, "  path:")
 		fmt.Fprintln(out, "    JSON field path (eg: field.sub-field).")
 	}
@@ -36,14 +41,11 @@ func main() {
 		" Note that counter fields are computed based on this interval.")
 	steps := flag.Int("steps", 100, "Number of values to plot.")
 	rows := flag.Int("rows", 0, "Limits the height of the graph output.")
+	port := flag.Int("port", 0, "web server port")
+	hiw := flag.Int("hiw", 500, "web server image height")
+	hih := flag.Int("hih", 500, "web server  image width")
+	hirr := flag.Int("hirr", 1000, "web server refresh rate (milliseconds)")
 	flag.Parse()
-
-	if !term.HasGraphicsSupport() {
-		fatal("iTerm2 or DRCS Sixel graphics required")
-	}
-	if os.Getenv("TERM") == "screen" {
-		fatal("screen and tmux not supported")
-	}
 
 	if len(flag.Args()) == 0 {
 		flag.Usage()
@@ -65,6 +67,25 @@ func main() {
 	dash := graph.Dash{
 		Specs: specs,
 		Data:  dp,
+	}
+	go func() {
+		if er := dp.Run(specs); er != nil {
+			fatal("Data source error: ", er)
+		}
+	}()
+
+	if *port != 0 {
+		err := streamer.Start(*port, &dash, *hiw, *hih, *hirr)
+		if err != nil {
+			fatal("cannot start server: %s", err.Error())
+		}
+	}
+
+	if !term.HasGraphicsSupport() {
+		fatal("iTerm2 or DRCS Sixel graphics required")
+	}
+	if os.Getenv("TERM") == "screen" {
+		fatal("screen and tmux not supported")
 	}
 
 	wg := &sync.WaitGroup{}
@@ -106,9 +127,6 @@ func main() {
 		}
 	}()
 
-	if err := dp.Run(specs); err != nil {
-		fatal("Data source error: ", err)
-	}
 }
 
 func fatal(a ...interface{}) {
@@ -149,9 +167,9 @@ func render(dash graph.Dash, rows int) {
 		rows = size.Row
 	}
 	// Use iTerm2 image display feature.
-	term := term.NewImageWriter(width, height)
-	defer term.Close()
-	if err := dash.Render(term, width, height); err != nil {
+	tm := term.NewImageWriter(width, height)
+	defer tm.Close()
+	if err := dash.Render(tm, width, height); err != nil {
 		fatal(fmt.Sprintf("cannot render graph: %v", err.Error()))
 	}
 }
