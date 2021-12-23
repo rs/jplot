@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/rs/jplot/data"
-	chart "github.com/wcharczuk/go-chart"
+	chart "github.com/wcharczuk/go-chart/v2"
 )
 
 type Dash struct {
