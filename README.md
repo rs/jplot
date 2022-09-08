@@ -30,7 +30,7 @@ brew install rs/tap/jplot
 From source:
 
 ```
-go get -u github.com/rs/jplot
+go install github.com/rs/jplot@latest
 ```
 
 This tool does only work with [iTerm2](https://www.iterm2.com), or terminals support DRCS Sixel Graphics.
