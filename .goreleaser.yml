@@ -1,21 +1,46 @@
 project_name: jplot
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
 builds:
--
-  env:
-  - CGO_ENABLED=0
-  goos:
-  - darwin
-git:
-  short_hash: true
-brew:
-  github:
-    owner: rs
-    name: homebrew-tap
-  commit_author:
-    name: Olivier Poitrey
-    email: rs@rhapsodyk.net
-  homepage: https://github.com/rs/jplot
-  description: iTerm2 expvar/JSON monitoring tool
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goamd64:
+      - v1
+      - v2
+      - v3
+universal_binaries:
+  - 
+    name_template: '{{.ProjectName}}'
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}_next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+brews:
+  - tap:
+      owner: rs
+      name: homebrew-tap
+      branch: main
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    commit_author:
+      name: Olivier Poitrey
+      email: rs@rhapsodyk.net
+    homepage: https://github.com/rs/jplot
+    description: iTerm2 expvar/JSON monitoring tool
+
 
 release:
   name_template: "{{.ProjectName}}-v{{.Version}}"
