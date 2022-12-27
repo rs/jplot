@@ -109,12 +109,12 @@ jplot --url http://:8080/debug/vars \
 
 ### Vegeta
 
-With the help of [jplot](https://github.com/rs/jplot) can be used to integrate [vegeta](https://github.com/tsenart/vegeta) with jplot as follow:
+With the help of [jaggr](https://github.com/rs/jaggr) can be used to integrate [vegeta](https://github.com/tsenart/vegeta) with jplot as follow:
 
 ```
 echo 'GET http://localhost:8080' | \
     vegeta attack -rate 5000 -workers 100 -duration 10m | vegeta dump | \
-    jplot @count=rps \
+    jaggr @count=rps \
           hist\[100,200,300,400,500\]:code \
           p25,p50,p95:latency \
           sum:bytes_in \
