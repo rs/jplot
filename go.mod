@@ -9,7 +9,7 @@ require (
 	github.com/mattn/go-sixel v0.0.1
 	github.com/monochromegane/terminal v0.0.0-20161222050454-9bc47e2707d9
 	github.com/wcharczuk/go-chart/v2 v2.1.0
-	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
+	golang.org/x/crypto v0.1.0
 )
 
 require (
@@ -20,6 +20,6 @@ require (
 	github.com/stretchr/testify v1.7.0 // indirect
 	golang.org/x/image v0.5.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	golang.org/x/term v0.1.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
