@@ -1,7 +1,7 @@
 package data
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -53,7 +53,7 @@ func (h httpSource) fetch(url string) {
 		return
 	}
 	defer resp.Body.Close()
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		h.c <- res{err: err}
 		return
