@@ -25,10 +25,9 @@ func checkSixel() bool {
 		return true
 	}
 	s, err := terminal.MakeRaw(1)
-	if err != nil {
-		return false
+	if err == nil {
+		defer terminal.Restore(1, s)
 	}
-	defer terminal.Restore(1, s)
 	_, err = os.Stdout.Write([]byte("\x1b[c"))
 	if err != nil {
 		return false
@@ -39,6 +38,9 @@ func checkSixel() bool {
 	n, err := os.Stdout.Read(b[:])
 	if err != nil {
 		return false
+	}
+	if bytes.HasPrefix(b[:n], []byte("\x1b[?1;2;4c")) {
+		return true
 	}
 	var supportedTerminals = []string{
 		"\x1b[?62;", // VT240
