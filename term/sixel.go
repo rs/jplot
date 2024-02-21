@@ -39,6 +39,10 @@ func checkSixel() bool {
 	if err != nil {
 		return false
 	}
+	// Check tmux (sixel enabled)
+	// See: CSI Ps c, Ps = 4 (Sixel graphics)
+	// https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+	// NOTE: tmux does not return VT name.
 	if bytes.HasPrefix(b[:n], []byte("\x1b[?1;2;4c")) {
 		return true
 	}
