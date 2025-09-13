@@ -1,3 +1,5 @@
+version: 2
+
 project_name: jplot
 before:
   hooks:
@@ -22,7 +24,7 @@ universal_binaries:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}_next"
+  version_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
@@ -30,7 +32,7 @@ changelog:
       - '^docs:'
       - '^test:'
 brews:
-  - tap:
+  - repository:
       owner: rs
       name: homebrew-tap
       branch: master
