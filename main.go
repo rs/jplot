@@ -39,7 +39,7 @@ func main() {
 	flag.Parse()
 
 	if !term.HasGraphicsSupport() {
-		fatal("iTerm2 or DRCS Sixel graphics required")
+		fatal("iTerm2, Kitty, or DRCS Sixel graphics required")
 	}
 	if os.Getenv("TERM") == "screen" {
 		fatal("screen and tmux not supported")

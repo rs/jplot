@@ -1,7 +1,7 @@
 # jplot
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/jplot/master/LICENSE)
 
-Jplot tracks expvar-like (JSON) metrics and plot their evolution over time right into your iTerm2 terminal (or DRCS Sixel Graphics).
+Jplot tracks expvar-like (JSON) metrics and plot their evolution over time right into your iTerm2, Kitty terminal, or terminals with DRCS Sixel Graphics support.
 
 ![](doc/demo.gif)
 
@@ -33,7 +33,7 @@ From source:
 go install github.com/rs/jplot@latest
 ```
 
-This tool does only work with [iTerm2](https://www.iterm2.com), or terminals support DRCS Sixel Graphics.
+This tool works with [iTerm2](https://www.iterm2.com), [Kitty](https://sw.kovidgoyal.net/kitty/), [Warp](https://www.warp.dev/), or terminals that support DRCS Sixel Graphics.
 
 ## Usage
 
@@ -130,6 +130,8 @@ echo 'GET http://localhost:8080' | \
 
 * [xterm](http://invisible-island.net/xterm/)
 * [iTerm2](https://www.iterm2.com/) on OSX
+* [Kitty](https://sw.kovidgoyal.net/kitty/) on Linux/macOS/Windows
+* [Warp](https://www.warp.dev/) on Linux/macOS/Windows
 * [mintty](https://mintty.github.io/) on UNIX OSs via SSH
 * [mlterm](https://sourceforge.net/projects/mlterm/) on Linux and Windows
 * [RLogin](http://nanno.dip.jp/softlib/man/rlogin/) on Windows

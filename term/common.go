@@ -19,7 +19,9 @@ var cellWidth, cellHeight float64
 var termWidth, termHeight int
 
 func HasGraphicsSupport() bool {
-	return os.Getenv("TERM_PROGRAM") == "iTerm.app" || sixelEnabled
+	return os.Getenv("TERM_PROGRAM") == "iTerm.app" ||
+		kittyEnabled ||
+		sixelEnabled
 }
 
 // ClearScrollback clears iTerm2 scrollback.
@@ -44,6 +46,14 @@ func initCellSize() {
 	}
 	defer terminal.Restore(1, s)
 	if sixelEnabled {
+		fmt.Fprint(os.Stdout, "\033[14t")
+		fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
+		defer fileSetReadDeadline(os.Stdout, time.Time{})
+		fmt.Fscanf(os.Stdout, "\033[4;%d;%dt", &termHeight, &termWidth)
+		return
+	}
+	if kittyEnabled {
+		// For Kitty terminals, use the standard terminal size query
 		fmt.Fprint(os.Stdout, "\033[14t")
 		fileSetReadDeadline(os.Stdout, time.Now().Add(time.Second))
 		defer fileSetReadDeadline(os.Stdout, time.Time{})
@@ -84,6 +94,12 @@ func Rows() (rows int, err error) {
 func NewImageWriter(width, height int) io.WriteCloser {
 	if sixelEnabled {
 		return &sixelWriter{
+			Width:  width,
+			Height: height,
+		}
+	}
+	if kittyEnabled {
+		return &kittyWriter{
 			Width:  width,
 			Height: height,
 		}
