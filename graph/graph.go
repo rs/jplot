@@ -5,9 +5,9 @@ import (
 	"math"
 
 	humanize "github.com/dustin/go-humanize"
+	chart "github.com/go-analyze/charts/chartdraw"
+	"github.com/go-analyze/charts/chartdraw/drawing"
 	"github.com/rs/jplot/data"
-	chart "github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 func init() {
@@ -52,13 +52,13 @@ func newChart(series []chart.Series, markers []chart.GridLine, width, height int
 				StrokeWidth: 2,
 				StrokeColor: c,
 				FillColor:   c.WithAlpha(20),
-				FontSize:    9,
 			}
+			s.Style.FontStyle.FontSize = 9
 			series[i] = s
 			last := chart.LastValueAnnotationSeries(s, siValueFormater)
 			last.Style.FillColor = c
-			last.Style.FontColor = textColor(c)
-			last.Style.FontSize = 9
+			last.Style.FontStyle.FontColor = textColor(c)
+			last.Style.FontStyle.FontSize = 9
 			last.Style.Padding = chart.NewBox(2, 2, 2, 2)
 			series = append(series, last)
 		}
@@ -103,8 +103,10 @@ func newChart(series []chart.Series, markers []chart.GridLine, width, height int
 	}
 	graph.Elements = []chart.Renderable{
 		legend(&graph, chart.Style{
-			FillColor:   drawing.Color{A: 100},
-			FontColor:   chart.ColorWhite,
+			FillColor: drawing.Color{A: 100},
+			FontStyle: chart.FontStyle{
+				FontColor: chart.ColorWhite,
+			},
 			StrokeColor: chart.ColorTransparent,
 		}),
 	}

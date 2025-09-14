@@ -3,19 +3,20 @@ package graph
 import (
 	"math"
 
-	chart "github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
+	chart "github.com/go-analyze/charts/chartdraw"
 )
 
 // custom version of chart.Legend
 func legend(c *chart.Chart, userDefaults ...chart.Style) chart.Renderable {
 	return func(r chart.Renderer, cb chart.Box, chartDefaults chart.Style) {
 		legendDefaults := chart.Style{
-			FillColor:   drawing.ColorWhite,
-			FontColor:   chart.DefaultTextColor,
-			FontSize:    8.0,
-			StrokeColor: chart.DefaultAxisColor,
-			StrokeWidth: chart.DefaultAxisLineWidth,
+			FillColor: chart.ColorWhite,
+			FontStyle: chart.FontStyle{
+				FontColor: chart.ColorBlack,
+				FontSize:  8.0,
+			},
+			StrokeColor: chart.ColorBlack,
+			StrokeWidth: 1.0,
 		}
 
 		legendPadding := chart.Box{
