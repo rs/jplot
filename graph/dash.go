@@ -6,8 +6,8 @@ import (
 	"image/png"
 	"io"
 
+	chart "github.com/go-analyze/charts/chartdraw"
 	"github.com/rs/jplot/data"
-	chart "github.com/wcharczuk/go-chart/v2"
 )
 
 type Dash struct {
